@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">AndroidDevelopersStudy2</string>
+    <string name="happy_birthday_text">Happy Birthday!</string>
+    <string name="signature_text">sample</string>
+    <string name="Background_img">Background_img</string>
+</resources>
