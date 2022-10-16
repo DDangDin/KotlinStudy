@@ -43,7 +43,7 @@ fun invokeLamda(lamda: (Double) -> Boolean): Boolean {
 
 
 // Object 컴파일 될 때 한번만 생성. 따라서 불필요한 메모리를 줄일 수 있음
-// Singleton Pattern
+// Singleton Pattern`
 object CarFactory {
     val cars = mutableListOf<Car>()
     fun makeCar(horsepower: Int): Car {
