@@ -71,5 +71,4 @@ fun main() {
     println("코드실행")
     println(number)
     println(number)
-
 }
