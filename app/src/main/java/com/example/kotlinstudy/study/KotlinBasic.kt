@@ -13,7 +13,7 @@ package com.example.kotlinstudy.study
 /** 2.1.2 함수 **/
 // 반환 타입은 함수 뒤에 :을 붙이고 타입 작성
 fun max(a: Int, b: Int): Int {
-    return if(a > b) a else b   // -> 삼항 연산자
+    return if (a > b) a else b   // -> 삼항 연산자
 
     //  !! 코틀린에서 if는 식이다 (문이 아니다)
     //  식은 값을 만들어 내며 다른 식의 하위 요소로
@@ -25,7 +25,7 @@ fun max(a: Int, b: Int): Int {
 }
 
 // 식이 본문인 함수
-fun maxSimple(a: Int, b: Int): Int = if(a > b) a else b
+fun maxSimple(a: Int, b: Int): Int = if (a > b) a else b
 
 /** 2.1.3 변수 **/
 // val 변수이름: 타입
@@ -57,6 +57,7 @@ fun maxSimple(a: Int, b: Int): Int = if(a > b) a else b
 
 // !! 코틀린 Person 클래스
 class Person(val name: String)  // -> 접근제한자 키워드: 코틀린은 기본으로 public (생략)
+
 // -> 이런 유형의 클래스(코드가 없이 데이터만 저장하는 클래스)를 값 객체(value object)라 부름
 // 클래스의 목적: 데이터를 캡슐화
 class Person2(
@@ -64,13 +65,19 @@ class Person2(
     var isPerson: Boolean
 )
 
-
+/** 2.2.2 커스텀 접근자 **/
+class Rectangle(val height: Int, val width: Int) {
+    val isSquare: Boolean
+        get() { // 프로퍼티 게터 선언
+            return height == width
+        }
+}
 
 
 fun main() {
     // Int 타입의 값을 반환하는 함수 호출
-    println(max(1,2))       // 블록이 본문인 함수
-    println(maxSimple(1,2)) // 식이 본문인 함수
+    println(max(1, 2))       // 블록이 본문인 함수
+    println(maxSimple(1, 2)) // 식이 본문인 함수
     // 결과 값은 동일
 
     val languages = arrayListOf("Java") // 불변 참조
@@ -81,5 +88,7 @@ fun main() {
     person.isPerson = false
     println("${person.name}, ${person.isPerson}")
 
+    val rectangle = Rectangle(41,43)
+    println(rectangle.isSquare)
 
 }
