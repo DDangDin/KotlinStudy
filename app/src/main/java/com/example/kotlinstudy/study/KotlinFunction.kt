@@ -115,7 +115,7 @@ var StringBuilder.lastCharExtension: Char   // StringBuilder에 같은 프로퍼
 //fun Collection<Int>.max(): Int { *//* 컬렉션의 최댓값을 찾음 *//* */}
 
 /** 3.4.2 가변 인자 함수: 인자의 개수가 달라질 수 있는 함수 정의 **/
-val list2 = listOf(2,3,5,7,11)
+val list2 = listOf(2, 3, 5, 7, 11)
 fun varargFunction(args: Array<String>) {
     val list = listOf("args: ", *args)  // 스프레드 연산자가 배열의 내용을 펼쳐줌 (자바에서는 사용 x)
     println(list)
@@ -149,6 +149,92 @@ infix fun Any.to(other: Any) = Pair(this, other)
 // -> 두번째 (.+) 즉, 마지막 점 전: 파일 이름
 // -> 세번째 (.+) 즉, 점 뒤: 확장자
 
+/** 3.6 코드 다듬기: 로컬 함수와 확장 **/
+// - 많은 개발자들이 좋은 코드의 중요한 특징 중 하나가 중복이 없는 것이라 믿음
+// - 하지만 자바는 'DRY(Don't Repeat Yourself)'원칙을 피하기 쉽지 않음
+// - 코틀린에는 깔끔한 해법이 존재 (메서드 추출 리팩토링 등에 따른 불필요한 준비 코드가 늘어나는 문제)
+// -> 코틀린에서는 함수에서 추출한 함수를 원 함수 내부에 중첩시킬 수 있음
+class User(val id: Int, val name: String, val address: String)
+
+fun saveUser(user: User) {
+    if (user.name.isEmpty()) {
+        throw IllegalArgumentException(
+            "Can't save user ${user.id}: empty Name"
+        )
+    }
+    if (user.address.isEmpty()) {
+        throw IllegalArgumentException(
+            "Can't save user ${user.id}: empty Address"
+        )
+    }
+    // user를 데이터베이스에 저장한다.
+    // !! if식 두개를 보면 필드 검증이 중복됨
+}
+
+// !! 로컬 함수를 사용해 코드 중복 줄이기
+fun saveUser2(user: User) {
+    fun validate(
+        user: User,
+        value: String,
+        fieldName: String
+    ) {
+        if (value.isEmpty()) {
+            throw IllegalArgumentException(
+                "Can't save user ${user.id}: empty $fieldName"
+            )
+        }
+    }
+
+    // 로컬 함수를 호출해서 각 필드를 검증함
+    validate(user, user.name, "Name")
+    validate(user, user.address, "Address")
+
+    // !! !! !! 하지만 User 객체를 로컬 함수에게 하나하나 전달해야 한다는 점이 아쉬움
+    // 그래서 밑에 함수로 해결
+}
+
+// 로컬 함수에서 바깥 함수의 파라미터 접근하기 (그냥 접근 가능)
+fun saveUser3(user: User) {
+    fun validate(value: String, fieldName: String) {    // 더 이상 바깥 함수의 user 파라미터 중복 사용 X
+        if (value.isEmpty()) {
+            throw IllegalArgumentException(
+                "Can't save user ${user.id}: " +    // 바깥 함수의 파라미터에 직접 접근 가능
+                        " empty $fieldName"
+            )
+        }
+    }
+
+    validate(user.name, "Name")
+    validate(user.address, "Address")
+}
+
+// 검증 로직을 확장 함수로 추출하기
+fun User.validateBeforeSave() {
+    fun validate(value: String, fieldName: String) {
+        if (value.isEmpty()) {
+            throw IllegalArgumentException(
+                "Can't save user $id: empty $fieldName" // !! !! User의 프로퍼티를 직접 사용할 수 있음
+            )
+        }
+    }
+
+    validate(name, "Name")
+    validate(address, "Address")
+}
+
+fun saveUser4(user:User) {
+    user.validateBeforeSave()   // 확장 함수 호출
+
+    // user를 데이터베이스에 저장한다.
+}
+
+// -> 코드를 확장 함수로 뽑아내는 기법은 놀랄 만큼 유용함!!!
+// -> 이 경우, 검증 로직은 User를 사용하는 다른 곳에서는 쓰이지 않는 기능이기 때문에
+// User에 포함시키고 싶지는 않음, User를 간결하게 유지하면 생각해야 할 내용이 줄어들어서
+// 더 쉽게 코드를 파악 가능
+// -> 반면 한 객체만을 다루면서 객체의 비공개 데이터를 다룰 필요는 없는
+// 함수는 위 함수처럼 확장 함수로 만들면 객체.멤버 처럼 수신 객체를 지정하지 않고도
+// 공개된 멤버 프로퍼티나 메서들에 접근 가능
 
 
 
@@ -184,5 +270,10 @@ fun main() {
 
     println("12.345-6.A".split("\\.|-".toRegex())) // 정규식을 명시적으로 만든다.
     println("12.345-6.A".split(".", "-")) // 위와 같음
+
+//    saveUser(User(1, "", ""))
+//    saveUser2(User(2, "", ""))
+//    saveUser3(User(3, "", ""))
+    saveUser4(User(4, "", ""))
 
 }
