@@ -71,10 +71,103 @@ open class RichButton: Clickable {  // open class, 다른 클래스가 이 클�
 // 추상 멤버는 항상 open
 abstract class Animated {
     abstract fun animate()
+
     // 추상클래스에 속했더라도 비추상 함수는 기본적으로 final, 원한다면 open 으로 오버라이드 허용 가능
     open fun stopAnimating() {}
     fun animateTwice() {}
 }
+
+// !! 인터페이스의 멤버의 경우 final, open, abstract를 사용 X
+// 인터페이스 멤버는 항상 열려 있으며 final로 변경할 수 X
+// 인터페이스 멤버에게 본문이 없으면 자동으로 추상 멤버가 됨
+
+/** 클래스 내에서 상속 제어 변경자의 의미 **/
+// 1. final     (오버라이드 X, 클래스 멤버의 기본 변경자)
+// 2. open      (오버라이드 O, 반드시 open을 명시해야 오버라이드할 수 있음)
+// 3. abstract  (반드시 오버라이드, 추상 클래스의 멤버에만 이 변경자를 붙임, 추상 멤버에는 구현이 있으면 안됨)
+// 오버라이드하는 멤버는 기본적으로 열려있음, 오버라이드 금지하려면 final을 명시
+
+/** 4.1.3 코틀린의 가시성 변경자 **/
+//                        [클래스 멤버]                  [최상위 선언]
+// 1. public(기본 가시성)    모든 곳에서 볼 수 있음           모든 곳에서 볼 수 있음
+// 2. internal            같은 모듈 안에서만 볼 수 있음      같은 모듈 안에서만 볼 수 있음
+// 3. protected           하위 클래스 안에서만 볼 수 있음     (최상위 선언에 적용할 수 없음)
+// 4. private             같은 클래스 안에서만 볼 수 있음     같은 파일 안에서만 볼 수 있음
+
+internal open class TalkativeButton: Focusable {
+    private fun yell() = println("Hey!")
+    protected fun whisper () = println("Let's talk!")
+}
+
+// 오류: public 멤버가 자신의 internal 수신타입인 TalkativeButton을 노출함
+//fun TalkativeButton.giveSpeech() {
+//    yell()        // 오류: private
+//    whisper()     // 오류: protected
+//}
+
+/** 4.1.4 내부 클래스와 중첩된 클래스: 기본적으로 중첩 클래스 **/
+// 코틀린도 자바처럼 클래스 안에 다른 클래스 선언 가능
+// 클래스 안에 다른 클래스를 선언하면 도우미 클래스를 캡슐화하거나
+// 코드 정의를 그 코드를 사용하는 곳 가까이에 두고 싶을 때 유용
+interface State: java.io.Serializable
+interface View {
+    fun getCurrentState(): State
+    fun restoreState(state: State) {}
+}
+
+// Button 클래스의 상태를 저장하는 클래스는 Button 클래스 내부에 선언하면 편함
+// 153,154p 자바 예제코드에서
+// ButtonState 클래스는 바깥쪽 Button 클래스에 대한 참조를 묵시적으로 포함 -> ButtonState 직렬화 X
+// 문제 해결: ButtonState를 static으로 선언 -> 참조 사라짐
+
+// 코틀린 코드
+class Button3: View {
+    override fun getCurrentState(): State = ButtonState()
+    override fun restoreState(state: State) {  }
+    class ButtonState: State {  } // -> 아무 변경자가 붙지 않으면 자바 static 중첩클래스와 동일
+
+}
+// !! 자바와 코틀린의 중첩 클래스와 내부 클래스의 관계
+// 중첩 클래스(바깥쪽 클래스에 대한 참조를 저장하지 않음): 자바(static class A), 코틀린(class A)
+// 내부 클래스(바깥쪽 클래스에 대한 참조를 저장함): 자바(class A), 코틀린(inner class A)
+// 또한, 중첩 클래스는 클래스 계층을 만들되 그 계층에 속한 클래스의 수를 제한하고 싶은 경우 편리
+
+// inner class 예시
+class Outer {
+    inner class Inner {
+        // 내부 클래스(Inner) 안에서 바깥쪽 클래스(Outer)의 참조에 접근하려면 this@Outer 사용
+        fun getOuterReference(): Outer = this@Outer
+    }
+}
+
+/** 4.1.5 봉인된 클래스(sealed class): 클래스 계층 정의 시 계층 확장 제한 **/
+// sealed class 특징 ->
+// 1. 자동 open
+// 2. 상속 제한 (sealed class 는 클래스 외부에 자신을 상속한 클래스를 둘 수 없음)
+sealed class SealedExpr {
+    // 중첩 클래스들
+    class Num(val value: Int): SealedExpr()
+    class Sum(val left: SealedExpr, val right: SealedExpr): SealedExpr()
+}
+
+fun eval(e: SealedExpr): Int =
+    when (e) {
+        is SealedExpr.Num -> e.value
+        is SealedExpr.Sum -> eval(e.right) + eval(e.left)
+    }
+// 'when' 식이 모든 하위 클래스를 검사하므로 별도의 'else' 분기 필요 X
+
+// !!
+// 내부적으로 SealedExpr 클래스는 private 생성자를 가지고
+// 그 생성자는 클래스 내부에서만 호출 가능
+// 위에 sealed class 특징 2번의 이유!!!!!!!
+
+/** !! 코틀린 1.5 이상 버전 변경사항 **/
+// 1. sealed class 가 정의된 패키지 안의 아무 위치에 선언 가능,
+// 2. sealed interface 추가
+// 2번 추가 설명 ->
+// 원래는 sealed interface를 정의 못했었음, sealed interface를 만들 수 있다면
+// 그 인터페이스를 자바 쪽에서 구현하지 못하게 막을 수 있는 수단이 코틀린 컴파일러에게 없었기 때문
 
 
 
