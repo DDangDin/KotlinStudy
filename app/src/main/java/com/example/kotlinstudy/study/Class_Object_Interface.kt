@@ -169,6 +169,50 @@ fun eval(e: SealedExpr): Int =
 // 원래는 sealed interface를 정의 못했었음, sealed interface를 만들 수 있다면
 // 그 인터페이스를 자바 쪽에서 구현하지 못하게 막을 수 있는 수단이 코틀린 컴파일러에게 없었기 때문
 
+/** 4.2 뻔하지 않은 생성자와 프로퍼티를 갖는 클래스 선언 **/
+// 코틀린도 자바처럼 하나 이상의 생성자를 선언할 수 있지만
+// 한가지 바뀐 부분은 코틀린은 주 생성자, 부 생성자를 구분한다.
+// 또한 코틀린에서는 초기화 블록을 통해 초기화 로직을 추가할 수 있다.
+
+/** 4.2.1 클래스 초기화: 주 생성자와 초기화 블록 **/
+// class User(val name: String) 에서 클래스 이름 뒤에 오는 괄호로 둘러싸인 코드를 주 생성자라고 부름
+class User2 constructor(_nickname: String) {    // constructor 키워드는 주 생성자나 부 생성자 정의를 시작할 때 사용
+    val nickname: String
+    
+    init {  // 초기화 블록
+        nickname = _nickname
+    }
+}
+
+// 그리고 주 생성자 앞에 별다른 애노테이션이나 가시성 변경자가 없다면 constructor를 생략해도 됨
+class User3(_nickname: String) {
+    val nickname = _nickname
+}
+
+// !! 결국 class User(val name: String) 처럼
+// 프로퍼티 정의와 초기화를 간략히 쓸 수 있음
+
+// 함수 파라미터와 마찬가지로 생성자 파라미터에도 디폴트 값 정의 가능
+class User4(val check: Boolean = false)
+
+// !! 클래스에 기반 클래스가 있다면 주 생성자에서 기반 클래스의 생성자를 호출해야 할 필요가 있음
+// 기반 클래스를 초기화하려면 기반 클래스 이름 뒤에 괄호를 치고 생성자 인자를 넘김
+open class TestUser(val nickname: String)
+class TwitterUser(nickname: String): TestUser(nickname)
+
+// !
+// 또 하나 알 수 있는 것은 
+// 기반 클래스의 이름 뒤에는 괄호가 들어간다
+open class BaseClass
+interface BaseInterface
+//class MainClass(): BaseClass  // -> 에러, 아래 처럼 빈 괄호 작성 해줘야함
+class MainClass(): BaseClass(), BaseInterface// -> 인터페이스는 생성자가 없기 때문에 괄호 필요 X
+
+// !! 어떤 클래스를 클래스 외부에서 인스턴스화하지 못하게 막고 싶다면
+// 모든 생성자를 private으로 만들면 됨
+class Secretive private constructor()
+// -> 외부에서 Secretive를 인스턴스화할 수 없음
+
 
 
 
