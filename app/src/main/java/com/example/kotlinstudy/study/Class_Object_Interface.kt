@@ -1,5 +1,8 @@
 package com.example.kotlinstudy.study
 
+import android.content.Context
+import android.util.AttributeSet
+
 /** 4장 클래스, 객체, 인터페이스 **/
 // !! sealed class는 클래스 상속을 제한
 
@@ -15,10 +18,12 @@ interface Clickable {
     fun click() // 추상 메서드 (일반 메서드 선언)
     fun showOff() = println("I'm clickable!")   // 디폴트 구현이 있는 메서드
 }
+
 // 인터페이스 구현
-class Button: Clickable {
+class Button : Clickable {
     override fun click() = println("I was clicked")
 }
+
 interface Focusable {
     fun setFocus(b: Boolean) =
         println("I ${if (b) "got" else "lost"} focus.")
@@ -30,7 +35,7 @@ interface Focusable {
 // 한 클래스에서 두 인터페이스를 함께 구현하면 어느 쪽에 showOff 메서드도 선택되지 않음
 // showOff 구현을 대체할 오버라이딩 메서드를 직접 제공하지 않으면 컴파일러 오류 발생
 // 해결법은 밑에 코드
-class Button2: Clickable, Focusable {
+class Button2 : Clickable, Focusable {
     override fun click() = println("I was clicked")
     override fun showOff() {    // super<상위 타입의 이름> 를 명시해 구분 가능
         super<Clickable>.showOff()
@@ -58,10 +63,11 @@ class Button2: Clickable, Focusable {
 // 어떤 클래스의 상속을 허용하려면 open 변경자를 붙여야함
 // 더불어 오버라이드를 허용하고 싶은 메서드나 프로퍼티의 앞에도 open 변경자를 붙어야함
 
-open class RichButton: Clickable {  // open class, 다른 클래스가 이 클래스를 상속 가능
+open class RichButton : Clickable {  // open class, 다른 클래스가 이 클래스를 상속 가능
     fun disable() {}                // 이 함수는 final 로 하위 클래스가 이 메서드를 오버라이드 X
     open fun animate() {}           // 하위 클래스에서 이 메서드를 오버라이드 할 수 있음
-//    override fun click() {}         // 이 함수는 (상위 클래스에서 선언된) 열려있는 메서드를 오버라이드 한다.
+
+    //    override fun click() {}         // 이 함수는 (상위 클래스에서 선언된) 열려있는 메서드를 오버라이드 한다.
     // 오버라이드한 메서드는 기본적으로 열려있음
     final override fun click() {}   // 오버라이드해서 구현한 메서드 오버라이드 금지 (final)
 }
@@ -94,9 +100,9 @@ abstract class Animated {
 // 3. protected           하위 클래스 안에서만 볼 수 있음     (최상위 선언에 적용할 수 없음)
 // 4. private             같은 클래스 안에서만 볼 수 있음     같은 파일 안에서만 볼 수 있음
 
-internal open class TalkativeButton: Focusable {
+internal open class TalkativeButton : Focusable {
     private fun yell() = println("Hey!")
-    protected fun whisper () = println("Let's talk!")
+    protected fun whisper() = println("Let's talk!")
 }
 
 // 오류: public 멤버가 자신의 internal 수신타입인 TalkativeButton을 노출함
@@ -109,7 +115,7 @@ internal open class TalkativeButton: Focusable {
 // 코틀린도 자바처럼 클래스 안에 다른 클래스 선언 가능
 // 클래스 안에 다른 클래스를 선언하면 도우미 클래스를 캡슐화하거나
 // 코드 정의를 그 코드를 사용하는 곳 가까이에 두고 싶을 때 유용
-interface State: java.io.Serializable
+interface State : java.io.Serializable
 interface View {
     fun getCurrentState(): State
     fun restoreState(state: State) {}
@@ -121,10 +127,10 @@ interface View {
 // 문제 해결: ButtonState를 static으로 선언 -> 참조 사라짐
 
 // 코틀린 코드
-class Button3: View {
+class Button3 : View {
     override fun getCurrentState(): State = ButtonState()
-    override fun restoreState(state: State) {  }
-    class ButtonState: State {  } // -> 아무 변경자가 붙지 않으면 자바 static 중첩클래스와 동일
+    override fun restoreState(state: State) {}
+    class ButtonState : State {} // -> 아무 변경자가 붙지 않으면 자바 static 중첩클래스와 동일
 
 }
 // !! 자바와 코틀린의 중첩 클래스와 내부 클래스의 관계
@@ -146,8 +152,8 @@ class Outer {
 // 2. 상속 제한 (sealed class 는 클래스 외부에 자신을 상속한 클래스를 둘 수 없음)
 sealed class SealedExpr {
     // 중첩 클래스들
-    class Num(val value: Int): SealedExpr()
-    class Sum(val left: SealedExpr, val right: SealedExpr): SealedExpr()
+    class Num(val value: Int) : SealedExpr()
+    class Sum(val left: SealedExpr, val right: SealedExpr) : SealedExpr()
 }
 
 fun eval(e: SealedExpr): Int =
@@ -178,7 +184,7 @@ fun eval(e: SealedExpr): Int =
 // class User(val name: String) 에서 클래스 이름 뒤에 오는 괄호로 둘러싸인 코드를 주 생성자라고 부름
 class User2 constructor(_nickname: String) {    // constructor 키워드는 주 생성자나 부 생성자 정의를 시작할 때 사용
     val nickname: String
-    
+
     init {  // 초기화 블록
         nickname = _nickname
     }
@@ -198,20 +204,107 @@ class User4(val check: Boolean = false)
 // !! 클래스에 기반 클래스가 있다면 주 생성자에서 기반 클래스의 생성자를 호출해야 할 필요가 있음
 // 기반 클래스를 초기화하려면 기반 클래스 이름 뒤에 괄호를 치고 생성자 인자를 넘김
 open class TestUser(val nickname: String)
-class TwitterUser(nickname: String): TestUser(nickname)
+class TwitterUser(nickname: String) : TestUser(nickname)
 
 // !
 // 또 하나 알 수 있는 것은 
 // 기반 클래스의 이름 뒤에는 괄호가 들어간다
 open class BaseClass
 interface BaseInterface
+
 //class MainClass(): BaseClass  // -> 에러, 아래 처럼 빈 괄호 작성 해줘야함
-class MainClass(): BaseClass(), BaseInterface// -> 인터페이스는 생성자가 없기 때문에 괄호 필요 X
+class MainClass() : BaseClass(), BaseInterface// -> 인터페이스는 생성자가 없기 때문에 괄호 필요 X
 
 // !! 어떤 클래스를 클래스 외부에서 인스턴스화하지 못하게 막고 싶다면
 // 모든 생성자를 private으로 만들면 됨
 class Secretive private constructor()
 // -> 외부에서 Secretive를 인스턴스화할 수 없음
+
+/** 4.2.2 부 생성자: 상위 클래스를 다른 방식으로 초기화 (가볍게) **/
+// !! Tip: 인자에 대한 디폴트 값을 제공하기 위해 부 생성자를 여럿 만들지 마라.
+// -> 대신 파라미터의 디폴트 값을 생성자 시그니처에 직접 명시하라
+
+// 그래도 생성자 여럿 필요한 경우가 가끔 있음
+// Ex) 가장 일반적인 상황은 프레임워크 클래스를 확장해야 하는데 여러 가지 방법으로 인스턴스를
+// 초기화할 수 있게 다양한 생성자를 지원해야 하는 경우
+
+// 예를들어 자바에서 선언된 생성자가 2개인 View클래스 (코틀린 코드)
+open class View2 {  // 주 생성자 X
+    // 부 생성자들
+    constructor(ctx: Context) {}
+    constructor(ctx: Context, attr: AttributeSet) {}
+}
+
+// 위 클래스를 확장하면서 똑같이 부 생성자를 정의할 수 있음
+class MyButton : View2 {
+    // 상위 클래스의 생성자를 호출함 (즉, 생성을 위임함)
+    constructor(ctx: Context)
+            : super(ctx) {
+
+    }
+
+    constructor(ctx: Context, attr: AttributeSet)
+            : super(ctx, attr) {
+
+    }
+}
+
+/** 4.2.3 인터페이스에 선언된 프로퍼티 구현 **/
+interface User5 {
+    val nickname: String    // 추상 프로퍼티
+}
+
+class PrivateUser(override val nickname: String) : User5 // 주 생성자에 있는 프로퍼티
+class SubscribingUser(val email: String) : User5 {
+    override val nickname: String
+        get() = email.substringBefore('@')  // 커스텀 게터
+}
+// class FacebookUser(val accountId: Int): User5 {
+//    override val nickname: String = getFacebookName(accountId)    // 프로퍼티 초기화 식
+// }
+
+interface User6 {
+    val email: String
+    val name: String    // 프로퍼티에 뒷받침하는 필드가 없음, 대신 매번 결과를 계산해 돌려줌
+        get() = email.substringBefore('@')
+}
+
+/** 4.2.4 게터와 세터에서 뒷받침하는 필드에 접근 **/
+// Ex) 프로퍼티에 저장된 값의 변경 이력을 로그에 남기려는 경우
+class User7(val name: String) {
+    var address: String = "unspecified"
+        set(value: String) {
+            println(
+                """
+            Address was changed for $name:
+            "$field" -> "$value".
+        """.trimIndent()
+            )   // 뒷받침하는 필드 값 읽기
+            field = value   // 뒷받침하는 필드 값 변경하기
+            // !! 여기서
+            // field: oldValue
+            // value: newValue
+            // 게터에서는 field 값을 읽을 수만 있고
+            // 세터에서는 field 값을 읽거나 쓸 수 있음
+        }
+}
+
+/** 4.2.5 접근자의 가시성 변경 **/
+class LengthCounter {
+    var counter: Int = 0
+        private set // 이 클래스 밖에서 이 프로퍼티의 값을 바꿀 수 없음
+
+    fun addWord(word: String) {
+        counter += word.length
+    }
+}
+
+/** 4.3 컴파일러가 생성한 메서드: 데이터 클래스와 클래스 위임 **/
+
+/** 4.3.1 모든 클래스가 정의해야 하는 메서드 **/
+// 해시 컨테이너: hashCode()
+// JVM 언어에서는 hashCode가 지켜야 하는 "equals()"가 true를 반환하는 두 객체는
+// 반드시 같은 hashCode()를 반환해야 한다" 라는 제약이 있음
 
 
 
@@ -225,4 +318,16 @@ fun main() {
     button.showOff()
     button.setFocus(true)
     button.click()
+
+    println(PrivateUser("test@kotlinlang.org").nickname)
+    println(SubscribingUser("test@kotlinlang.org").nickname)
+    println()
+
+    val user = User7("Alice")
+    user.address = "Elsenheimerstrasse 47, 80687 Muenchen"  // 커스텀 세터 (추가) 호출
+    println()
+
+    val lengthCounter = LengthCounter()
+    lengthCounter.addWord("Hi!")
+    println(lengthCounter.counter)
 }
