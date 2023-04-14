@@ -2,6 +2,7 @@ package com.example.kotlinstudy.study
 
 import android.content.Context
 import android.util.AttributeSet
+import android.view.Window
 
 /** 4장 클래스, 객체, 인터페이스 **/
 // !! sealed class는 클래스 상속을 제한
@@ -306,6 +307,133 @@ class LengthCounter {
 // JVM 언어에서는 hashCode가 지켜야 하는 "equals()"가 true를 반환하는 두 객체는
 // 반드시 같은 hashCode()를 반환해야 한다" 라는 제약이 있음
 
+/** 4.3.2 데이터 클래스: 모든 클래스가 정의해야 하는 메서드 자동생성 **/
+data class Client(val name: String, val postalCode: Int)
+// Client(data class) 자바에서 요구하는 모든 메서드를 포함
+// 1. 인스턴스 간 비교를 위한 equals
+// 2. HashMap과 같은 해시 기반 컨테이너에서 키로 사용할 수 있는 hashCode
+// 3. 클래스의 각 필드를 선언 순서대로 표시하는 문자열 표현을 만들어주는 toString
+// 이 외에 몇 가지 유용한 메서드를 더 생성해줌
+// 데이터 클래스의 프로퍼티를 var로 써도 되지만
+// 읽기 전용으로 만들어서 데이터 클래스를 불변 클래스로 만들라고 권장
+
+/** 4.3.3 클래스 위임: by 키워드 사용 **/
+// !!
+// 일단 Delegate Pattern에 대해 알아야함
+interface Animal {
+    val name: String
+    fun sound()
+}
+
+class Lion: Animal {
+    override val name: String = "lion"
+
+    override fun sound() {
+        println("lion say hi!")
+    }
+}
+
+class Tiger(private val animal: Animal): Animal {
+    override val name: String = animal.name
+
+    override fun sound() {
+        animal.sound()
+    }
+}
+
+// Animal 인터페이스가 있고 Lion, Tiger 둘다 Animal을 구현한다
+// 근데 Tiger은 구현을 직접하는게 아니라 구현체를 받고 구현한
+// 이렇게 내가 직접 구현하는게 아닌 다른 객체에게 내가 할 일을 위임하는 것이
+// Delegate Pattern 이다
+// 하지만 이런 방식의 delegate 는 많은 코드의 보일러플레이트를 유발
+
+// by 키워드 사용
+class TigerBy (am: Animal): Animal by am
+
+/** 4.4 object 키워드: 클래스 선언과 인스턴스 생성 **/
+// 클래스를 정의하면서 동시에 인스턴스를 생성함
+// object 키워드를 사용하는 여러 상황
+// 1. 객체 선언: 싱글턴을 정의하는 방법 중 하나
+// 2. 동반 객체: 인스턴스 메서드는 아니지만 어떤 클래스와 관련없는 메서드와
+// 팩토리 메서드를 담을 때 쓰임
+// 3. 객체 식은 자바의 무명 내부 클래스 대신 쓰임
+
+/** 4.4.1 객체 선언: 싱글턴을 쉽게 만들기 **/
+// 인스턴스가 하나만 필요한 클래스가 유용한 경우가 많음
+// Ex) 객체 선언을 사용해 회사 급여 대장을 만들 수 있음,
+// 한 회사에 여러 급여 대장이 필요하지는 않을 테니 싱글턴을 쓰는 게 정당해 보임
+object Payroll {
+    val allEmployees = arrayListOf<Person>()
+
+    fun calculateSalary() {
+        for (person in allEmployees) {
+
+        }
+    }
+}
+// 1. 객체 선언은 object 키워드로 시작해서
+// 클래스를 정의하고 그 클래스의 인스턴스를 만들어서 변수에 저장하는 모든 작업을 단 한 문장으로 처리함
+// 2. 단, 생성자는 객체 선언에 쓸 수 없음
+// 3. 객체 선언도 클래스나 인터페이스를 상속할 수 있음
+
+// tip: 대규모 컴포넌트에는 싱글턴이 적합하지 않음,
+// 이유는 객체 생성을 제어할 방법이 없고 생성자 파라미터를 지정할 수 없어서임
+// 소규모 소프트웨어에서는 싱글턴이나 객체 선언이 유용함
+
+/** 4.4.2 동반 객체: 팩토리 메서드와 정적 멤버가 들어갈 장소 **/
+// !! 코틀린 클래스 안에는 정적인 멤버가 없음
+// 코틀린은 자바처럼 static 지원 X
+// -> 그 대신 코틀린에서는 패키지 수준의 최상위 함수와 객체 선언을 활용
+// 대부분의 경우 최상위 함수를 활용하는 편을 더 권장
+
+// !! 클래스의 인스턴스와 관계없이 호출해야 하지만
+// 클래스의 내부 정보에 접근해야 하는 함수가 필요할 때는 클래스에 중첩된 객체 선언의
+// 멤버 함수로 정의해야 함
+// 대표적인 예 -> 팩토리 메서드
+
+// companion object
+class A {
+    companion object {
+        fun bar() {
+            println("Companion object called")
+        }
+    }
+}
+// 동반 객체가 private 생성자를 호출하기 좋은 위치!!
+// 동반 객체는 자신을 둘러싼 클래스의 모든 private 멤버에 접근 가능
+// 따라서 동반 객체는 바깥쪽 클래스의 private 생성자도 호출 가능
+// 따라서 동반 객체는 팩토리 패턴을 구현하기 가장 적합한 위치
+
+// !! 부 생성자를 팩토리 메서드로 대신하기
+class UserFactory private constructor(val nickname: String) { // 주 생성자를 비공개로 만듦
+    companion object {
+        fun newSubscribingUser(email: String) = UserFactory(email.substringBefore('@'))
+//        fun newFacebookUser(accountId: String) = UserFactory(getFacebookName(accountId))
+    }
+}
+
+/** 4.4.3 동반 객체를 일반 객체처럼 사용 **/
+// 동반 객체는 클래스 안에 정의된 일반 객체다
+// Ex) 회사의 급여 명부를 제공하는 웹 서비스를 만든다고 가정
+// 서비스에서 사용하기 위해 객체를 JSON 으로 직렬화 하거나 역직렬화 해야 함
+// 직렬화 로직을 동반 객체 안에 넣을 수 있음
+class Person3(val name: String) {
+    // 동반 객체에 이름 붙이기
+    companion object Loader {
+        // 실제로는 json 파싱해야하는데 문법 공부니 임시로
+        fun fromJSON(jsonText: String): Person3 = Person3(jsonText.substring(7..9))
+    }
+}
+
+/** 4.4.4 객체 식: 무명 내부 클래스를 다른 방식으로 작성 **/
+// !! 타이머 앱 만들때 고민했던 부분
+// Ex) 무명 객체로 이벤트 리스너 구현하기
+
+// !!
+// 한 인터페이스만 구현하거나 한 클래스만 확장할 수 있는 자바의 무명 내부 클래스와 달리
+// 코틀린 무명 클래스는 여러 인터페이스를 구현하거나 클래스를 확장하면서 인터페이스를 구현할 수 있음
+
+
 
 
 
@@ -330,4 +458,20 @@ fun main() {
     val lengthCounter = LengthCounter()
     lengthCounter.addWord("Hi!")
     println(lengthCounter.counter)
+    println()
+
+    val tigerBy = TigerBy(Lion())
+    tigerBy.sound()
+    println()
+
+    A.bar()
+    println()
+
+    val subscribingUser = UserFactory.newSubscribingUser("bob@email.com")
+    println(subscribingUser.nickname)
+    println()
+
+    val person = Person3.Loader.fromJSON("{name: kim}")
+    println(person.name)
+
 }
