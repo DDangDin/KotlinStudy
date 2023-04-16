@@ -433,6 +433,44 @@ class Person3(val name: String) {
 // 한 인터페이스만 구현하거나 한 클래스만 확장할 수 있는 자바의 무명 내부 클래스와 달리
 // 코틀린 무명 클래스는 여러 인터페이스를 구현하거나 클래스를 확장하면서 인터페이스를 구현할 수 있음
 
+/** 5. 람다로 프로그래밍 **/
+
+/** 5.1.2 람다와 컬렉션 **/
+data class Person4(val name: String, val age: Int)
+// 람다를 사용해 컬렉션 검색 (내용은 main함수 안에)
+// 멤버 참조를 사용해 컬렉션 검색하기 (내용은 main함수 안에)
+
+/** 5.1.3 람다 식의 문법 **/
+// 람다는 값처럼 여기저기 전달할 수 있는 동작의 모음
+// !! 람다 식 문법
+// { x: Int, y: Int -> x + y }
+// {      파라미터    ->  본문  }
+// 항상 중괄호 사이에 위치함
+
+// 람다 식 직접 호출 -> { println(42) }()
+// 하지만 위 식은 쓸모 없음
+// 코드의 일부분 코드블록으로 둘러싸 실행할 필요가 있다면
+// run 사용
+// run { println(42) }
+
+// println(people.maxBy { it.age })
+// 코틀린이 코드를 줄여 쓸 수 있게 제공했던 기능을 제거하고
+// 정식으로 람다 작성
+// people.maxBy({ p: Person -> p.age })
+
+/** 5.2 컬렉션 함수형 API **/
+
+/** 5.2.1 필수적인 함수: filter 와 map **/
+// filter와 map은 컬렉션을 활용할 때 기반이 되는 함수다
+// 대부분의 컬렉션 연산을 이 두 함수를 통해 표현할 수 있다
+
+// filter 함수:
+// 컬렉션을 이터레이션하면서 주어진 람다에 각 원소를 넘겨서 람다가 true를 반환하는 원소만 모음
+// 하지만 filter 함수는 원소를 변환 X
+// 원소를 변환하려면 map 함수 사용
+
+// map 함수: 주어진 람다를 컬렉션의 각 원소에 적용한 결과를 모아서 새 컬렉션을 만듦
+
 
 
 
@@ -473,5 +511,42 @@ fun main() {
 
     val person = Person3.Loader.fromJSON("{name: kim}")
     println(person.name)
+    println()
 
+    // 람다를 사용해 컬렉션 검색
+    val people = listOf(Person4("Alice", 29), Person4("Bob", 31))
+    println(people.maxBy { it.age })
+    // 멤버 참조를 사용해 컬렉션 검색하기
+    println(people.maxBy(Person4::age))
+    println()
+
+    // 람다 사용
+    val sum = { x: Int, y: Int -> x + y }
+    println(sum(1,2))
+    // 람다 식 직접 호출
+    run { println(42) }
+    println()
+
+    // 코틀린이 제공한 기능을 람다로 작성
+    // println(people.maxBy { it.age })
+    println(people.maxBy({ p: Person4 -> p.age }))
+    // 개선 (후행 람다 사용 가능)
+    println(people.maxBy() { p: Person4 -> p.age })
+    // 개선 (괄호 안에 받을 인자가 없다면 생략 가능)
+    println(people.maxBy { p: Person4 -> p.age })
+    println()
+
+    // filter 함수
+    val list = listOf(1,2,3,4)
+    println(list.filter { it % 2 == 0 })
+    val people2 = listOf(
+        Person4("Alice", 29),
+        Person4("Bob", 31)
+    )
+    println(people2.filter { it.age > 30 })
+    val list2 = listOf(1,2,3,4)
+    println(list2.map { it * it })
+    println(people2.map { it.name })
+    println(people2.count())
+    println(people2.count { it.name == "Alice" })
 }
